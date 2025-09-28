@@ -40,7 +40,7 @@ function InterviewPage() {
       }
 
       // NOTE: For Vercel deployment, replace "ws://127.0.0.1:8000/ws" with your dedicated server's URL (e.g., "wss://your-backend-api.com/ws")
-      wsRef.current = new WebSocket("ws://127.0.0.1:8000/ws");
+      wsRef.current = new WebSocket("wss://my-career-api.render.com/ws");
 
       wsRef.current.onopen = () => {
         const intervalId = setInterval(() => {
@@ -196,3 +196,4 @@ function InterviewPage() {
 }
 
 export default InterviewPage;
+
