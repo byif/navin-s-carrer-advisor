@@ -219,8 +219,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 analysis_results = {}
 
                 try:
-results = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, detector_backend='ssd')
-if results:
+                
+                   results = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, detector_backend='ssd')
+                if results:
                         dominant_emotion = results[0]['dominant_emotion']
                         analysis_results['emotion'] = dominant_emotion
                     else:
@@ -244,3 +245,4 @@ if results:
     except Exception as e:
 
         print(f"Unexpected error: {e}")
+
