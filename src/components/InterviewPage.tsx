@@ -11,19 +11,23 @@ function InterviewPage() {
   const wsRef = useRef<WebSocket | null>(null);
   const intervalRef = useRef<number | null>(null);
 
+  // Anti-cheating: Tab visibility detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setFocus("Possible distraction detected!");
       } else {
-        setFocus("Looking at camera");
+        // Only reset if it was a distraction detected by the browser
+        if (focus === "Possible distraction detected!") {
+            setFocus("Looking at camera");
+        }
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [focus]); // Depend on focus to prevent infinite loop
 
   const startInterview = async () => {
     setAnalysisVisible(false);
@@ -35,6 +39,7 @@ function InterviewPage() {
         videoRef.current.srcObject = stream;
       }
 
+      // NOTE: For Vercel deployment, replace "ws://127.0.0.1:8000/ws" with your dedicated server's URL (e.g., "wss://your-backend-api.com/ws")
       wsRef.current = new WebSocket("ws://127.0.0.1:8000/ws");
 
       wsRef.current.onopen = () => {
