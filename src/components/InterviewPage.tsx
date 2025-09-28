@@ -27,7 +27,7 @@ function InterviewPage() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [focus]); // Depend on focus to prevent infinite loop
+  }, [focus]); 
 
   const startInterview = async () => {
     setAnalysisVisible(false);
@@ -39,8 +39,13 @@ function InterviewPage() {
         videoRef.current.srcObject = stream;
       }
 
-      // NOTE: For Vercel deployment, replace "ws://127.0.0.1:8000/ws" with your dedicated server's URL (e.g., "wss://your-backend-api.com/ws")
-      wsRef.current = new WebSocket("wss://my-career-api.render.com/ws");
+      // ----------------------------------------------------------------------------------
+      // !!! ACTION REQUIRED: Update this URL !!!
+      // If testing locally: "ws://127.0.0.1:8000/ws"
+      // If deployed (RENDER): Use your actual secure URL, e.g., "wss://your-render-name.onrender.com/ws"
+      // NOTE: You MUST use wss:// for production and ws:// for local testing.
+      // ----------------------------------------------------------------------------------
+      wsRef.current = new WebSocket("wss://your-render-name.onrender.com/ws");
 
       wsRef.current.onopen = () => {
         const intervalId = setInterval(() => {
@@ -55,7 +60,7 @@ function InterviewPage() {
               wsRef.current.send(dataUrl);
             }
           }
-        }, 200);
+        }, 333); // Reduced frame rate for better stability
         intervalRef.current = intervalId as unknown as number;
       };
 
@@ -196,4 +201,3 @@ function InterviewPage() {
 }
 
 export default InterviewPage;
-
