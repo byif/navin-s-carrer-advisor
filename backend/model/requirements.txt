@@ -1,3 +1,10 @@
 flask
 flask-cors
 pdfplumber
+fastapi
+uvicorn
+python-multipart
+opencv-python
+deepface
+dlib
+
