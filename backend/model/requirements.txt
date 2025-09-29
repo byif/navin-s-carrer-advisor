@@ -1,10 +1,10 @@
-flask
-flask-cors
-pdfplumber
 fastapi
 uvicorn
-python-multipart
-opencv-python
+sqlalchemy
+pdfplumber
+numpy
+opencv-python-headless
 deepface
 dlib
-
+python-multipart
+jinja2
