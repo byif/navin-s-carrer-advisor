@@ -32,7 +32,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-2">
             <GraduationCap className="h-6 w-6" />
-            <span className="text-xl font-extrabold tracking-wide">AI Career Advisor</span>
+            <span className="text-xl font-extrabold tracking-wide">True Path AI</span>
           </Link>
 
           <button
