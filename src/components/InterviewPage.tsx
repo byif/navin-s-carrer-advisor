@@ -1,4 +1,3 @@
-```jsx
 import React, { useRef, useState, useEffect } from "react";
 
 function InterviewPage() {
@@ -219,4 +218,4 @@ function InterviewPage() {
 }
 
 export default InterviewPage;
-```
+
