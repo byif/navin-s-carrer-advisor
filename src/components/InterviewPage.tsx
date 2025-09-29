@@ -1,33 +1,39 @@
+```jsx
 import React, { useRef, useState, useEffect } from "react";
 
 function InterviewPage() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef(null);
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [analysisVisible, setAnalysisVisible] = useState(false);
   const [emotion, setEmotion] = useState("Neutral");
   const [focus, setFocus] = useState("Looking at camera");
-  const [suspiciousCount, setSuspiciousCount] = useState(0); 
+  const [suspiciousCount, setSuspiciousCount] = useState(0);
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const intervalRef = useRef<number | null>(null);
+  const wsRef = useRef(null);
+  const intervalRef = useRef(null);
 
-  // Anti-cheating: Tab visibility detection
+  // 🔒 Use correct WebSocket URL depending on environment
+  const getWsUrl = () => {
+    if (process.env.NODE_ENV === "development") {
+      return "ws://127.0.0.1:8000/ws"; // local dev backend
+    }
+    return "wss://your-backend.onrender.com/ws"; // 🔗 replace with Render backend URL
+  };
+
+  // 🕵 Anti-cheating: Tab visibility detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setFocus("Possible distraction detected!");
-      } else {
-        // Only reset if it was a distraction detected by the browser
-        if (focus === "Possible distraction detected!") {
-            setFocus("Looking at camera");
-        }
+      } else if (focus === "Possible distraction detected!") {
+        setFocus("Looking at camera");
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [focus]); 
+  }, [focus]);
 
   const startInterview = async () => {
     setAnalysisVisible(false);
@@ -39,47 +45,48 @@ function InterviewPage() {
         videoRef.current.srcObject = stream;
       }
 
-      // ----------------------------------------------------------------------------------
-      // !!! ACTION REQUIRED: Update this URL !!!
-      // If testing locally: "ws://127.0.0.1:8000/ws"
-      // If deployed (RENDER): Use your actual secure URL, e.g., "wss://your-render-name.onrender.com/ws"
-      // NOTE: You MUST use wss:// for production and ws:// for local testing.
-      // ----------------------------------------------------------------------------------
-      wsRef.current = new WebSocket("wss://your-render-name.onrender.com/ws");
+      wsRef.current = new WebSocket(getWsUrl());
 
       wsRef.current.onopen = () => {
+        console.log("✅ WebSocket connected");
         const intervalId = setInterval(() => {
-          if (videoRef.current && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            const canvas = document.createElement('canvas');
+          if (
+            videoRef.current &&
+            wsRef.current &&
+            wsRef.current.readyState === WebSocket.OPEN
+          ) {
+            const canvas = document.createElement("canvas");
             canvas.width = videoRef.current.videoWidth;
             canvas.height = videoRef.current.videoHeight;
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
             if (ctx) {
               ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
               wsRef.current.send(dataUrl);
             }
           }
-        }, 333); // Reduced frame rate for better stability
-        intervalRef.current = intervalId as unknown as number;
+        }, 333);
+        intervalRef.current = intervalId;
       };
 
       wsRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.emotion) {
-          setEmotion(data.emotion);
-        }
-        if (data.focus_status) {
-          setFocus(data.focus_status);
-        }
-        if (data.suspicious_count !== undefined) {
-          setSuspiciousCount(data.suspicious_count);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.emotion) setEmotion(data.emotion);
+          if (data.focus_status) setFocus(data.focus_status);
+          if (data.suspicious_count !== undefined)
+            setSuspiciousCount(data.suspicious_count);
+        } catch (err) {
+          console.error("⚠️ Error parsing server data:", err);
         }
       };
 
-      wsRef.current.onclose = () => {};
+      wsRef.current.onclose = () => {
+        console.warn("⚠️ WebSocket closed");
+      };
+
       wsRef.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error("❌ WebSocket error:", error);
       };
     } catch (error) {
       console.error("Error accessing webcam:", error);
@@ -89,16 +96,25 @@ function InterviewPage() {
   };
 
   const stopInterview = () => {
+    // Stop video stream
     if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
+      const stream = videoRef.current.srcObject;
       stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
     }
+
+    // Close WebSocket
     if (wsRef.current) {
       wsRef.current.close();
+      wsRef.current = null;
     }
+
+    // Clear interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
+
     setInterviewStarted(false);
     setAnalysisVisible(true);
   };
@@ -128,6 +144,7 @@ function InterviewPage() {
             </div>
           </div>
         )}
+
         {interviewStarted && !analysisVisible && (
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-black rounded-xl overflow-hidden shadow-lg">
@@ -163,6 +180,7 @@ function InterviewPage() {
             </div>
           </div>
         )}
+
         {analysisVisible && !interviewStarted && (
           <div className="max-w-4xl mx-auto mt-10 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg">
             <h1 className="text-3xl font-bold mb-4 text-center">
@@ -201,3 +219,4 @@ function InterviewPage() {
 }
 
 export default InterviewPage;
+```
